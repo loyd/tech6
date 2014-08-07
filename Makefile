@@ -7,12 +7,12 @@ BUILD := build
 
 EXCLUDE :=
 
-CFLAGS := -pedantic -Wall -Wextra -Wswitch-default -Wswitch-enum -Wshadow   \
-          -Wno-float-equal -Wundef -Wpointer-arith -Wcast-align -Winit-self \
-          -Wstrict-overflow=3 -Wlogical-op -Wwrite-strings -Wnested-externs \
-          -Wbad-function-cast -Wold-style-definition -Wunreachable-code     \
-          -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations   \
-          -Wno-logical-op-parentheses -Wno-unknown-warning-option -Werror
+CFLAGS := -pedantic -Werror -Wall -Wextra -Wswitch-default -Wswitch-enum      \
+          -Wshadow -Wundef -Wpointer-arith -Wcast-align -Winit-self           \
+          -Wstrict-overflow=3 -Wlogical-op -Wwrite-strings -Wnested-externs   \
+          -Wbad-function-cast -Wold-style-definition -Wunreachable-code       \
+          -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations     \
+          -Wno-logical-op-parentheses -Wno-unused-parameter -Wno-float-equal
 
 CFLAGS += -D_GNU_SOURCE
 CFLAGS += -iquote./embed -I./vendor/include
@@ -23,7 +23,7 @@ RHOST :=
 RPATH :=
 
 PYTHON2.7 := python2.7
-CLINTFLAGS := --verbose=0 --extensions=c,h --root=embed --filter="+,        \
+CLINTFLAGS := --verbose=0 --extensions=c,h --root=embed --filter="+,          \
               -legal,-build/header_guard,-readability/casting"
 
 -include config.mk
