@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdlib.h>
+
 typedef void (*event_cb)(void* data);
 
 typedef struct event_node_s {
