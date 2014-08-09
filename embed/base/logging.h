@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 
+
 typedef enum {
   LOG_LEVEL_FATAL   = 1 << 0,
   LOG_LEVEL_ERROR   = 1 << 1,
@@ -10,9 +11,11 @@ typedef enum {
   LOG_LEVEL_DEBUG   = 1 << 4
 } log_level_t;
 
+
 extern void* log__message(const char* file, int line, const char* func,
                           log_level_t level, const char* format, ...)
   __attribute__((format(printf, 5, 6)));
+
 
 #ifdef NDEBUG
 # define log_debug(...)   NULL

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+
 typedef void (*event_cb)(void* data);
 
 typedef struct event_node_s {
@@ -10,6 +11,7 @@ typedef struct event_node_s {
 } event_t;
 
 #define EVENT_INIT {NULL, NULL}
+
 
 extern void publish(event_t* ev, void* data);
 extern void subscribe(event_t* ev, event_cb cb);

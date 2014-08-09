@@ -8,9 +8,11 @@
 #include <string.h>
 #include <uv.h>
 
+
 static const log_level_t LOG_ERRMASK = LOG_LEVEL_FATAL
                                      | LOG_LEVEL_ERROR
                                      | LOG_LEVEL_WARNING;
+
 
 /*
  * 123456 test.c:45 (do_smthngs)         debug> Debug message
@@ -25,6 +27,7 @@ static const log_level_t LOG_ERRMASK = LOG_LEVEL_FATAL
 static const int PREFIX_SIZE  = 45;
 static const int MESSAGE_SIZE = 80;
 
+
 static const char* level_str(log_level_t level) {
   switch (level) {
     case LOG_LEVEL_FATAL:   return "fatal";
@@ -37,6 +40,7 @@ static const char* level_str(log_level_t level) {
       assert(0);
   }
 }
+
 
 void* log__message(const char* file, int line, const char* func,
                   log_level_t level, const char* format, ...) {

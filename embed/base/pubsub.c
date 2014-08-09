@@ -6,6 +6,7 @@
 
 #include "base/logging.h"
 
+
 void publish(event_t* ev, void* data) {
   assert(ev && data);
 
@@ -15,6 +16,7 @@ void publish(event_t* ev, void* data) {
     ev->subscriber(data);
   }
 }
+
 
 void (subscribe)(event_t* ev, event_cb cb) {
   assert(ev && cb);
@@ -27,6 +29,7 @@ void (subscribe)(event_t* ev, event_cb cb) {
   ev->subscriber = cb;
   ev->next = NULL;
 }
+
 
 void (unsubscribe)(event_t* ev, event_cb cb) {
   assert(ev && cb);
@@ -54,6 +57,7 @@ void (unsubscribe)(event_t* ev, event_cb cb) {
     }
   }
 }
+
 
 void unsubscribe_all(event_t* ev) {
   assert(ev);

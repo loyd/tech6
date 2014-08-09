@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <tgmath.h>
 
+
 float inv_sqrt(float x) {
   float halfx = 0.5f * x;
   float y = x;
@@ -14,10 +15,12 @@ float inv_sqrt(float x) {
   return y;
 }
 
+
 float press_to_alt(int32_t p) {
   assert(p > 0);
   return 44330 * (1 - pow(p/101325.0f, 0.19029496f));
 }
+
 
 void quat_to_euler(float q[4], float* yaw, float* pitch, float* roll) {
   assert(yaw && pitch && roll);
