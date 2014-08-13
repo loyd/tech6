@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <uv.h>
 
+#include "base/config.h"
 #include "base/logging.h"
 #include "base/node.h"
 #include "nodes/ahrs.h"
-
 
 static node_t* nodes[] = {&ahrs};
 
@@ -27,6 +27,8 @@ static void signal_handler(uv_signal_t* handle, int signum) {
 
 
 int main(void) {
+  cfg_init();
+
   // Initialize nodes.
   for (int i = 0, len = sizeof(nodes)/sizeof(nodes[0]); i < len; ++i)
     if (!node_init(nodes[i])) terminate(1);

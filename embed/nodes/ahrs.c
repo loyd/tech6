@@ -5,6 +5,7 @@
 #include <uv.h>
 
 #include "base/aux_math.h"
+#include "base/config.h"
 #include "base/logging.h"
 #include "base/node.h"
 #include "base/pubsub.h"
@@ -12,10 +13,6 @@
 #include "devices/adxl345.h"
 #include "devices/hmc5883l.h"
 #include "devices/l3g4200d.h"
-
-
-static int rate = 20;
-static const char* bus = "/dev/i2c-1";
 
 
 event_t ev_ahrs = EVENT_INIT;
@@ -73,6 +70,9 @@ static bool init(void) {
   hmc5883l = NULL;
   l3g4200d = NULL;
   filter = NULL;
+
+  const char* bus = cfg_str("gy-80:bus");
+  float rate = cfg_double("gy-80:rate");
 
   bool ok = (adxl345 = adxl345_open(bus, ADXL345_ADDR))
          && (hmc5883l = hmc5883l_open(bus, HMC5883L_ADDR))

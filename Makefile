@@ -38,8 +38,13 @@ OBJECTS := $(patsubst embed/%.c,$(OBJDIR)/%.o,$(SOURCES))
 
 
 #### Targets
+all: $(BUILD)/embed $(BUILD)/config.ini
+
 $(BUILD)/embed: $(OBJECTS)
 	$(CC) $^ $(LFLAGS) -o $@
+
+$(BUILD)/config.ini: config.ini
+	cp $< $@
 
 $(BUILD):
 	mkdir -p $(sort $(dir $(OBJECTS)))
@@ -63,13 +68,14 @@ vendor:
 	scp $(RHOST):/usr/include/uv*.h vendor/include
 	scp $(RHOST):/usr/lib/libiniparser*.so* vendor/lib
 	scp $(RHOST):/usr/include/iniparser.h vendor/include
+	scp $(RHOST):/usr/include/dictionary.h vendor/include
 
 
 #### Tasks
 .PHONY: deploy remrun lint clean
 
-deploy: $(BUILD)/embed
-	scp $< $(RHOST):$(RPATH)
+deploy: $(BUILD)/embed $(BUILD)/config.ini
+	scp $^ $(RHOST):$(RPATH)
 
 remrun: deploy
 	ssh -t $(RHOST) 'cd $(RPATH) && ./embed'
