@@ -17,7 +17,7 @@ CFLAGS := -pedantic -Werror -Wall -Wextra -Wswitch-default -Wswitch-enum      \
 CFLAGS += -D_GNU_SOURCE
 CFLAGS += -iquote./embed -I./vendor/include
 
-LFLAGS :=  -L./vendor/lib -lm -luv
+LFLAGS :=  -L./vendor/lib -lm -luv -liniparser
 
 RHOST :=
 RPATH :=
@@ -61,6 +61,8 @@ vendor:
 	mkdir -p $@/lib $@/include
 	scp $(RHOST):/usr/lib/libuv*.so* vendor/lib
 	scp $(RHOST):/usr/include/uv*.h vendor/include
+	scp $(RHOST):/usr/lib/libiniparser*.so* vendor/lib
+	scp $(RHOST):/usr/include/iniparser.h vendor/include
 
 
 #### Tasks
