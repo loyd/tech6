@@ -44,7 +44,7 @@ bool l3g4200d_tune(l3g4200d_t* dev, float rate, float range) {
   assert(rate > 0);
   assert(range > 0);
 
-  // Setup rate
+  // Setup rate.
   if (rate > 800) log_warning("Too high update rate for l3g4200d.");
   dev->buf[0] = 0x20;
   dev->buf[1] = rate <= 100 ? (rate = 100, 0x2f)
@@ -55,7 +55,7 @@ bool l3g4200d_tune(l3g4200d_t* dev, float rate, float range) {
   if (!(i2c_write(dev->underline, dev->buf, 2)))
     return log_error("Cannot setup l3g4200d (rate = %f).", rate);
 
-  // Setup range
+  // Setup range.
   if (range > 2000) log_warning("Too wide range for l3g4200d.");
   dev->buf[0] = 0x23;
   dev->buf[1] = range <= 250 ? (range = 250, 0x00)

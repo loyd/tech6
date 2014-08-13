@@ -47,7 +47,7 @@ void* log__message(const char* file, int line, const char* func,
   const int FULL_SIZE = PREFIX_SIZE + MESSAGE_SIZE + 1;
   assert(file && func && format);
 
-  // Remove prefix 'embed/'
+  // Remove prefix 'embed/'.
   assert(strncmp(file, "embed/", 6) == 0);
   file += 6;
 

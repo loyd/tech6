@@ -40,7 +40,7 @@ adxl345_t* adxl345_open(const char* bus, int8_t addr) {
 
 static const float rates[] = {.10, .20, .39, .78, 1.56, 3.13, 6.25,
                               12.5, 25, 50, 100, 200, 400, 800, 1600, 3200};
-                          // |<~~~~  low power mode ~~~~>|
+                          // |<~~~~ Low power mode. ~~~~>|
 
 static const float ranges[] = {2, 4, 8, 16};
 
@@ -50,12 +50,12 @@ bool adxl345_tune(adxl345_t* dev, float rate, float range) {
   assert(rate > 0);
   assert(range > 0);
 
-  // Setup rate
+  // Setup rate.
   if (rate > 3200) log_warning("Too high update rate for adxl345.");
   int rate_ctl = 0;
   while (rate_ctl < 15 && rates[rate_ctl] < rate) ++rate_ctl;
   rate = rates[rate_ctl];
-  if (12.5 <= rate && rate <= 400) rate_ctl |= 0x10;  // low power mode
+  if (12.5 <= rate && rate <= 400) rate_ctl |= 0x10;  // Low power mode.
 
   dev->buf[0] = 0x2c;
   dev->buf[1] = rate_ctl;
@@ -63,20 +63,20 @@ bool adxl345_tune(adxl345_t* dev, float rate, float range) {
   if (!(i2c_write(dev->underline, dev->buf, 2)))
     return log_error("Cannot setup adxl345 (rate = %f).", rate);
 
-  // Setup range
+  // Setup range.
   if (range > 16) log_warning("Too wide range for adxl345.");
   int range_ctl = 0;
   while (range_ctl < 3 && ranges[range_ctl] < range) ++range_ctl;
   range = ranges[range_ctl];
   dev->buf[0] = 0x31;
-  dev->buf[1] = range_ctl | 0x08;  // full resolution mode
+  dev->buf[1] = range_ctl | 0x08;  // Full resolution mode.
 
   if (!(i2c_write(dev->underline, dev->buf, 2)))
     return log_error("Cannot setup adxl345 (range = %f).", range);
 
   dev->gain = range/(512 << range_ctl);
 
-  // Start to measure
+  // Start to measure.
   dev->buf[0] = 0x2d;
   dev->buf[1] = 0x08;
   if (!(i2c_write(dev->underline, dev->buf, 2)))
