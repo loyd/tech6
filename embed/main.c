@@ -4,9 +4,10 @@
 
 #include "base/logging.h"
 #include "base/node.h"
+#include "nodes/ahrs.h"
 
 
-static node_t* nodes[] = {};
+static node_t* nodes[] = {&ahrs};
 
 
 static void terminate(int code) {
