@@ -1,7 +1,7 @@
-(function(window, document, GUI) {
+(function(document, GUI) {
   "use strict";
 
-  // Aliases
+  // Aliases.
   var assert = console.assert.bind(console),
       sin = Math.sin,
       cos = Math.cos,
@@ -14,30 +14,31 @@
       M_PI_2 = M_PI/2,
       M_1_PI = 1/M_PI;
 
-  var MAX_FPS = 35,
-      BIG_INT = 50;
-
 
   // Globals
+  var MAX_FPS = 35, // [Hz]
+      BIG_DIST = 50; // [cm]
+
   var config = {
-    l1: 4.5,
-    l2: 8.5,
-    beta: 15,
+    l1: 4.5, // [cm]
+    l2: 8.5, // [cm]
+    beta: 15, // [°]
     axis: false,
     zoom: 0.6
   };
 
   var realZoom, canvas, ctx,
-      origin = {x: 0, y: 0},
-      target = {x: 0, y: 0};
+      origin = {x: 0, y: 0}, // [px], original frame
+      target = {x: 0, y: 0}, // [cm], regular frame
+      a0, a1, state;
 
 
-  window.addEventListener('load', init, false);
+  addEventListener('load', init, false);
 
   function init() {
-    window.addEventListener('resize', throttle(resize, 1000/MAX_FPS|0), false);
-    window.addEventListener('mousemove', throttle(move, 1000/MAX_FPS|0), false);
-    window.addEventListener('change', update, false);
+    addEventListener('resize', throttle(resize, 1000/MAX_FPS|0), false);
+    addEventListener('mousemove', throttle(move, 1000/MAX_FPS|0), false);
+    addEventListener('change', update, false);
 
     canvas = document.querySelector('#area');
     ctx = canvas.getContext('2d');
@@ -86,10 +87,19 @@
     ctx.restore();
 
     updateIK();
+    draw();
   }
 
 
+  // States.
+  var IK_NORMAL = 'normal',
+      IK_DROWNED = 'drowned',
+      IK_BENDED = 'bended',
+      IK_CLOSE = 'close',
+      IK_DISTANT = 'distant';
+
   function updateIK() {
+    // Can be cached.
     var l1 = config.l1,
         l2 = config.l2,
         beta = rad(config.beta),
@@ -101,80 +111,70 @@
         l1pl2l1pl2 = (l2+l1)*(l2+l1),
         phi = M_PI_2 - beta,
         sx = sin(beta)*l1,
-        sy = cos(beta)*l1;
+        sy = cos(beta)*l1,
+        a = 2 * sx,
+        b = 2 * sy,
+        c = l2l2 - sx*sx - sy*sy;
 
-    var a0, a1, state;
-    var r, rr, p;
+    a0 = a1 = NaN;
+    state = undefined;
 
-    rr = x*x + y*y;
+    var rr = x*x + y*y;
 
-    // Far
-    if (rr > l1pl2l1pl2) {
-      state = 'far';
-      a0 = atan2(y, x) + phi;
+    if (x*sy >= -sx*y)
+      if (rr <= l1pl2l1pl2)
+        // (x+xₛ)² + (y-yₛ)² ≥ l₂²
+        if (x*(x+a) + y*(y-b) >= c)
+          state = IK_NORMAL;
+        else
+          state = IK_CLOSE;
+      else
+        state = IK_DISTANT;
+    else
+      if (rr >= l1ml2l1ml2)
+        // (x-xₛ)² + (y+yₛ)² ≤ l₂²
+        if (x*(x-a) + y*(y+b) <= c)
+          state = IK_NORMAL;
+        else
+          state = y > 0 ? IK_DISTANT : IK_DROWNED;
+      else
+        state = IK_BENDED;
 
-      if (a0 < 0) {
+    switch (state) {
+      case IK_NORMAL:
+        var r = sqrt(rr);
+        a0 = acos((l1l1 + rr - l2l2)/(2 * l1 * r)) + atan2(x, -y) - beta;
+        a1 = acos((l1l1 + l2l2 - rr)/(2 * l1 * l2));
+        if (a0 < 0) a0 += 2*M_PI;
+        break;
+
+      case IK_DROWNED:
         a0 = 0;
         a1 = atan2(-y-sy, -x+sx) + phi;
-      } else {
-        if (M_PI < a0) a0 = M_PI;
-        a1 = M_PI;
-      }
+        break;
 
-      return draw(a0, a1, state);
-    }
-
-    // Near
-    if (rr < l1ml2l1ml2) {
-      state = 'near';
-      a0 = M_PI;
-      a1 = atan2(y-sy, x+sx) + phi;
-
-      if (a1 < 0) {
-        a0 = atan2(y, x) + phi;
-        if (a0 < 0)
-            a0 += M_PI;
-        else if (M_PI < a0)
-            a0 -= M_PI;
+      case IK_BENDED:
+        a0 = (atan2(y, x) + phi + M_PI) % M_PI;
         a1 = 0;
-      }
-      return draw(a0, a1, state);
-    }
+        break;
 
-    r = sqrt(rr);
-    a0 = acos((l1l1 + rr - l2l2)/(2 * l1 * r)) + atan2(x, -y) - beta;
-
-    assert(!isNaN(a0));
-
-    if (a0 < 0) {
-      a0 = 0;
-      a1 = atan2(-y-sy, -x+sx) + phi;
-      if (a1 < 0) {
-        state = 'near-3';
+      case IK_CLOSE:
         a0 = M_PI;
         a1 = atan2(y-sy, x+sx) + phi;
-      } else {
-        state = 'far-2';
-      }
-    } else if (M_PI < a0) {
-      state = 'near-2';
-      a0 = M_PI;
-      a1 = atan2(y-sy, x+sx) + phi;
-    } else {
-      state = 'simple';
-      a1 = acos((l1l1 + l2l2 - rr)/(2 * l1 * l2));
+        break;
+
+      case IK_DISTANT:
+        a0 = atan2(y, x) + phi;
+        if (a0 > M_PI) a0 = M_PI;
+        a1 = M_PI;
+        break;
     }
 
-    assert(!isNaN(a0));
-    assert(!isNaN(a1));
-    assert(0 <= a0 && a0 <= M_PI);
-    assert(0 <= a1 && a1 <= M_PI);
-
-    draw(a0, a1, state);
+    draw();
   }
 
 
-  function draw(a0, a1, state) {
+  function draw() {
     var l1 = config.l1,
         l2 = config.l2,
         beta = rad(config.beta),
@@ -228,22 +228,22 @@
 
     ctx.rotate(beta);
     ctx.beginPath();
-    ctx.moveTo(0, -BIG_INT);
-    ctx.lineTo(0, BIG_INT);
+    ctx.moveTo(0, -BIG_DIST);
+    ctx.lineTo(0, BIG_DIST);
     ctx.stroke();
 
     ctx.rotate(a0);
     ctx.beginPath();
-    ctx.moveTo(0, -BIG_INT);
-    ctx.lineTo(0, BIG_INT);
+    ctx.moveTo(0, -BIG_DIST);
+    ctx.lineTo(0, BIG_DIST);
     ctx.stroke();
     ctx.restore();
 
     // Segments.
-    var x1 = l1 * cos(a0+beta - M_PI_2),
-        y1 = l1 * sin(a0+beta - M_PI_2),
-        x2 = x1 + l2 * sin(a0+beta + a1 - M_PI),
-        y2 = y1 - l2 * cos(a0+beta + a1 - M_PI);
+    var x1 = l1 * sin(a0+beta),
+        y1 = -l1 * cos(a0+beta),
+        x2 = x1 - l2 * sin(a0+beta + a1),
+        y2 = y1 + l2 * cos(a0+beta + a1);
 
     ctx.save();
     ctx.lineWidth = 0.08;
@@ -268,7 +268,7 @@
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.font = '12px monospace';
-    if (a0 < 0 || M_PI < a0 || a1 < 0 || M_PI < a1)
+    if (!(0 <= a0 && a0 <= M_PI) || !(0 <= a1 && a1 <= M_PI))
       ctx.fillStyle = 'red';
     ctx.fillText('Angles: ' + deg(a0).toFixed(0) + '°, '
                             + deg(a1).toFixed(0) + '°', 20, 20);
@@ -283,13 +283,13 @@
 
   function drawAxis() {
     ctx.beginPath()
-    ctx.moveTo(0, -BIG_INT);
-    ctx.lineTo(0, BIG_INT);
+    ctx.moveTo(0, -BIG_DIST);
+    ctx.lineTo(0, BIG_DIST);
     ctx.stroke();
 
     ctx.beginPath()
-    ctx.moveTo(-BIG_INT, 0);
-    ctx.lineTo(BIG_INT, 0);
+    ctx.moveTo(-BIG_DIST, 0);
+    ctx.lineTo(BIG_DIST, 0);
     ctx.stroke();
   }
 
@@ -324,4 +324,4 @@
   function rad(deg) { return deg * M_PI/180; }
   function deg(rad) { return rad * 180*M_1_PI; }
 
-})(window, document, dat.GUI);
+})(document, dat.GUI);
